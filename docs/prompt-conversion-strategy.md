@@ -26,7 +26,7 @@ Emotion Carrier base prompt
 
 - 중심 대상과 보조 대상을 영어 문장구로 정리한다.
 - 정서 분위기, 조명, 색감, 통제감, 관계 해석은 여기서 추가하지 않는다.
-- Q1에서 사용자가 직접 설명한 입력도 보존하되, 영어 프롬프트로 바꿀 수 있을 때만 직접 활용한다.
+- Q1과 Q3의 직접 입력은 영어로 받으며, 입력된 영문 표현을 그대로 deterministic canonical phrase로 사용한다.
 - Q2는 사람 / 사물 / 장소 / 사건을 핵심 범주로 두고, 행동-상태 / 추상 형상 / 기타는 탐색 범주로 둔다.
 
 ### 사용 입력
@@ -43,7 +43,7 @@ Emotion Carrier base prompt
 ### 출력 예시
 
 ```text
-a curled-up child figure with a closed door as a secondary symbolic element
+a curled-up child figure with a closed door-like object
 ```
 
 ---
@@ -140,7 +140,7 @@ central and visually salient presence, obstructive surrounding elements, presenc
 ### 예시
 
 ```text
-a curled-up child figure with a closed door as a secondary symbolic element, muted, dim, somber, still, low-energy, quiet, small-scale, fragile, withdrawn, central and visually salient presence, obstructive surrounding elements, presence of external influence implied in the scene, enclosed, limited escape space, uncertain, asymmetrical, partially obscured surroundings, 3D object, isolated object, suitable for text-to-3D generation
+a curled-up child figure with a closed door-like object, muted, dim, somber, still, low-energy, quiet, small-scale, fragile, withdrawn, central and visually salient presence, obstructive surrounding elements, presence of external influence implied in the scene, enclosed, limited escape space, uncertain, asymmetrical, partially obscured surroundings, 3D object, isolated object, suitable for text-to-3D generation
 ```
 
 ---

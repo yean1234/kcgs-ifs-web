@@ -4,9 +4,9 @@ const PRIMARY_CARRIER_PROMPT_MAP: Record<string, string> = {
   어린_시절의_나: "a child-like figure",
   사람_또는_캐릭터_같은_존재: "a person-like figure",
   빛·색·그림자·물체_같은_상징적_형상: "an abstract symbolic form",
-  감정이_형상으로_느껴짐: "an emotion-shaped form",
-  몸의_감각이_형상으로_느껴짐: "a sensation-shaped form",
-  목소리_또는_문장처럼_느껴짐: "a voice-like phrase",
+  감정이_형상으로_느껴짐: "a cloud-like emotional form",
+  몸의_감각이_형상으로_느껴짐: "a bodily-sensation form",
+  목소리_또는_문장처럼_느껴짐: "a voice-shaped form",
   여러_형태가_함께_느껴짐: "a composite form",
   아직_구체화되지_않음: "an undefined abstract form",
 };
@@ -73,6 +73,6 @@ export function buildEmotionCarrierBasePromptText(
     : null;
 
   return secondaryPrompt
-    ? `${primaryPrompt} with ${secondaryPrompt} as a secondary symbolic element`
+    ? `${primaryPrompt} with ${secondaryPrompt}`
     : primaryPrompt;
 }

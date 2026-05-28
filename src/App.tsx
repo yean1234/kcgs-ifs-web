@@ -229,14 +229,14 @@ function QuestionCard({
       {showCustomInput ? (
         <div className="custom-input-block">
           <label className="custom-input-label" htmlFor={`${question.id}-custom`}>
-            직접 입력 내용
+            직접 입력 내용 (영어)
           </label>
           <textarea
             id={`${question.id}-custom`}
             className="text-area text-area-custom"
             value={answer.textValue}
             onChange={(event) => onTextChange(question.id, event.target.value)}
-            placeholder={question.customPlaceholder ?? "직접 입력 내용을 적어 주세요."}
+            placeholder={question.customPlaceholder ?? "Please enter the text in English."}
             rows={4}
           />
         </div>

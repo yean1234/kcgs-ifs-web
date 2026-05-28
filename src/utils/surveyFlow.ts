@@ -20,6 +20,9 @@ const BLANK_ANSWER = (): AnswerRecord => ({
   textValue: "",
 });
 
+const HANGUL_PATTERN = /[ㄱ-ㅎㅏ-ㅣ가-힣]/;
+const LATIN_PATTERN = /[A-Za-z]/;
+
 function isEmotionCarrierType(value: string | null): value is EmotionCarrierType {
   return (
     value === "person" ||
@@ -68,6 +71,18 @@ function getScalePrecision(question: SurveyQuestion): number {
   }
 
   return stepText.includes(".") ? stepText.split(".")[1].length : 0;
+}
+
+function isEnglishOnlyText(value: string): boolean {
+  const normalized = value.trim();
+  return normalized.length > 0 && LATIN_PATTERN.test(normalized) && !HANGUL_PATTERN.test(normalized);
+}
+
+function requiresEnglishCustomInput(question: SurveyQuestion): boolean {
+  return (
+    question.id === "EMOTION_CARRIER_Q1_PRIMARY_CARRIER" ||
+    question.id === "EMOTION_CARRIER_Q3_SECONDARY_CARRIER"
+  );
 }
 
 export function formatScaleValue(question: SurveyQuestion, value: number): string {
@@ -161,7 +176,11 @@ export function isQuestionComplete(question: SurveyQuestion, answer: AnswerRecor
   }
 
   if (answer.selectedValue === "custom") {
-    return answer.textValue.trim().length > 0;
+    if (!requiresEnglishCustomInput(question)) {
+      return answer.textValue.trim().length > 0;
+    }
+
+    return isEnglishOnlyText(answer.textValue);
   }
 
   return true;
@@ -200,6 +219,14 @@ export function getQuestionValidationMessage(
 
   if (answer.selectedValue === "custom" && answer.textValue.trim().length === 0) {
     return "직접 입력 내용을 적어 주세요.";
+  }
+
+  if (
+    answer.selectedValue === "custom" &&
+    requiresEnglishCustomInput(question) &&
+    !isEnglishOnlyText(answer.textValue)
+  ) {
+    return "영어로 입력해 주세요.";
   }
 
   return null;

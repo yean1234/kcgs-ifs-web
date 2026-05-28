@@ -82,9 +82,9 @@ export const QUESTION_DEFINITIONS = {
       option("voice_or_phrase", "목소리 또는 문장처럼 느껴짐"),
       option("multiple", "여러 형태가 함께 느껴짐"),
       option("undefined", "아직 구체화되지 않음"),
-      option("custom", "직접 설명하기"),
+      option("custom", "직접 설명하기 (영어)"),
     ],
-    customPlaceholder: "예: 말로 옮기기 어려운 느낌, 이미지, 장면",
+    customPlaceholder: "Please describe it in English, e.g. a blurred feeling, a cloud-like image, a distant scene.",
   },
   EMOTION_CARRIER_Q2_CARRIER_TYPE: {
     id: "EMOTION_CARRIER_Q2_CARRIER_TYPE",
@@ -109,9 +109,9 @@ export const QUESTION_DEFINITIONS = {
     prompt: "그 감정과 함께 떠오르는 또 다른 대상이나 장면이 있나요?",
     options: [
       option("none", "없음"),
-      option("custom", "직접 입력"),
+      option("custom", "직접 입력 (영어)"),
     ],
-    customPlaceholder: "직접 떠오르는 대상이나 장면을 입력해 주세요",
+    customPlaceholder: "Please enter the object or scene in English, e.g. dark cloud, mist, shadow.",
   },
   VAD_Q1_VALENCE: {
     id: "VAD_Q1_VALENCE",
