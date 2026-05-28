@@ -91,15 +91,15 @@ export const QUESTION_DEFINITIONS = {
     section: "flesh_out",
     type: "single_select",
     prompt:
-      "선택한 대상은 어떤 유형에 가장 가깝나요?\n기본 범주를 먼저 보고, 필요하면 탐색용 범주도 확인해 주세요.",
+      "선택한 대상은 어떤 유형에 가장 가깝나요?\n기본 범주를 먼저 보고, 필요하면 아래의 다른 범주도 확인해 주세요.",
     options: [
       option("person", "사람 또는 인물"),
       option("object", "사물"),
       option("place", "장소 또는 공간"),
       option("event", "사건 또는 장면"),
-      option("action_state", "행동 또는 상태 (탐색용)"),
-      option("abstract_form", "추상적인 형태 (탐색용)"),
-      option("other", "기타 (탐색용)"),
+      option("action_state", "행동 또는 상태"),
+      option("abstract_form", "추상적인 형태"),
+      option("other", "기타"),
     ],
   },
   EMOTION_CARRIER_Q3_SECONDARY_CARRIER: {
