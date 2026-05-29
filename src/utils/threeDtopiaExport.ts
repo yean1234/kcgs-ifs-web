@@ -59,3 +59,9 @@ export function buildThreeDTopiaPromptPack(
     },
   };
 }
+
+export function serializeThreeDTopiaPromptVariant(
+  variant: ThreeDTopiaPromptVariant,
+): string {
+  return JSON.stringify(variant, null, 2);
+}

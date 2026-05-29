@@ -1,0 +1,28 @@
+{
+  "find": {
+    "initial_response": "body_sensation"
+  },
+  "focus": {
+    "free_description": "누군가 이마를 짓누르는 것 같다",
+    "location": "on_body_surface"
+  },
+  "emotionCarrier": {
+    "primaryCarrier": "몸의 감각이 형상으로 느껴짐",
+    "carrierType": "object",
+    "secondaryCarrier": "It feels like a hard object is pressing down on my forehead."
+  },
+  "vad": {
+    "valence": 0.14,
+    "arousal": 0,
+    "dominance": 0.72
+  },
+  "appraisal": {
+    "goalRelevance": 6,
+    "goalConduciveness": 2,
+    "agency": [
+      "self_behavior"
+    ],
+    "copingPotential": 3,
+    "predictability": 1
+  }
+}

@@ -607,10 +607,19 @@ button:disabled {
 }
 
 .prompt-card-footer {
+  display: grid;
+  gap: 10px;
+}
+
+.prompt-card-button-row {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.prompt-card-button-row .button {
+  flex: 0 0 auto;
 }
 
 .prompt-feedback {
