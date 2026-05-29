@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.pytest_cache/
+cache/
+outputs/
+inputs/generated/
+vendor/
+point_e_model_cache/
+*.pt
+*.pth
+*.ply
+*.obj
+*.glb
+*.usdz

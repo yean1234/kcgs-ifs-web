@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { APPRAISAL_GUIDANCE, SECTION_META } from "./data/surveyFlow";
 import type {
   AnswerMap,
@@ -8,9 +8,13 @@ import type {
   SurveyQuestion,
   SurveySectionId,
 } from "./types/survey";
-import type { PromptComparisonArtifacts } from "./types/prompt";
+import type { PromptComparisonArtifacts, ThreeDTopiaPromptPack } from "./types/prompt";
 import { buildPromptComparison } from "./utils/buildPromptComparison";
-import { buildThreeDTopiaPromptPack } from "./utils/threeDtopiaExport";
+import {
+  buildThreeDTopiaPromptPack,
+  serializeThreeDTopiaPromptVariant,
+} from "./utils/threeDtopiaExport";
+import { exportPromptPackToDevServer } from "./utils/localPromptPackExport";
 import {
   buildRawSurveyResponse,
   createEmptyAnswerMap,
@@ -30,12 +34,22 @@ type CopyTarget =
   | "three_dtopia_emotion_carrier_only"
   | "three_dtopia_emotion_carrier_vad"
   | "three_dtopia_emotion_carrier_appraisal"
-  | "three_dtopia_emotion_carrier_vad_appraisal";
+  | "three_dtopia_emotion_carrier_vad_appraisal"
+  | "three_dtopia_emotion_carrier_only_json"
+  | "three_dtopia_emotion_carrier_vad_json"
+  | "three_dtopia_emotion_carrier_appraisal_json"
+  | "three_dtopia_emotion_carrier_vad_appraisal_json";
 
 type CopyFeedback = {
   target: CopyTarget;
   kind: "success" | "error";
 } | null;
+
+type DevExportStatus =
+  | { kind: "idle" }
+  | { kind: "saving" }
+  | { kind: "success"; outputDir: string; latestDir: string; files: string[] }
+  | { kind: "error"; message: string };
 
 type SummaryEntry = {
   questionId: QuestionId;
@@ -69,10 +83,11 @@ type SummaryPanelProps = {
 
 type ResultPanelProps = {
   rawSurveyResponse: RawSurveyResponse;
-  comparison: PromptComparisonArtifacts;
+  threeDTopiaPromptPack: ThreeDTopiaPromptPack;
   copyFeedback: CopyFeedback;
   onCopyText: (target: CopyTarget, text: string) => void;
   onRestart: () => void;
+  devExportStatus: DevExportStatus;
 };
 
 type ResultCardProps = {
@@ -80,6 +95,8 @@ type ResultCardProps = {
   copyTarget: CopyTarget;
   copyButtonLabel: string;
   content: string;
+  jsonCopyTarget: CopyTarget;
+  jsonContent: string;
   copyFeedback: CopyFeedback;
   onCopyText: (target: CopyTarget, text: string) => void;
   description?: string;
@@ -305,13 +322,21 @@ function ResultCard({
   copyTarget,
   copyButtonLabel,
   content,
+  jsonCopyTarget,
+  jsonContent,
   copyFeedback,
   onCopyText,
   description,
 }: ResultCardProps) {
-  const isCopied = copyFeedback?.target === copyTarget && copyFeedback.kind === "success";
-  const isCopyError = copyFeedback?.target === copyTarget && copyFeedback.kind === "error";
+  const copyTargets = [copyTarget, jsonCopyTarget];
+  const isCopied = copyTargets.some(
+    (target) => copyFeedback?.target === target && copyFeedback.kind === "success",
+  );
+  const isCopyError = copyTargets.some(
+    (target) => copyFeedback?.target === target && copyFeedback.kind === "error",
+  );
   const displayedContent = content.length > 0 ? content : "없음";
+  const displayedJsonContent = jsonContent.length > 0 ? jsonContent : "없음";
 
   return (
     <article className="prompt-card">
@@ -325,13 +350,22 @@ function ResultCard({
       <pre className="prompt-output">{displayedContent}</pre>
 
       <div className="prompt-card-footer">
-        <button
-          type="button"
-          className="button secondary"
-          onClick={() => onCopyText(copyTarget, displayedContent)}
-        >
-          {copyButtonLabel}
-        </button>
+        <div className="prompt-card-button-row">
+          <button
+            type="button"
+            className="button secondary"
+            onClick={() => onCopyText(copyTarget, displayedContent)}
+          >
+            {copyButtonLabel}
+          </button>
+          <button
+            type="button"
+            className="button secondary"
+            onClick={() => onCopyText(jsonCopyTarget, displayedJsonContent)}
+          >
+            JSON 복사
+          </button>
+        </div>
         {isCopied ? <p className="prompt-feedback success">복사했습니다.</p> : null}
         {isCopyError ? (
           <p className="prompt-feedback error">복사에 실패했습니다. 브라우저 권한을 확인해 주세요.</p>
@@ -343,18 +377,19 @@ function ResultCard({
 
 function ResultPanel({
   rawSurveyResponse,
-  comparison,
+  threeDTopiaPromptPack,
   copyFeedback,
   onCopyText,
   onRestart,
+  devExportStatus,
 }: ResultPanelProps) {
   const rawSurveyResponseText = useMemo(
     () => JSON.stringify(rawSurveyResponse, null, 2),
     [rawSurveyResponse],
   );
-  const threeDTopiaPromptPack = useMemo(
-    () => buildThreeDTopiaPromptPack(comparison),
-    [comparison],
+  const threeDTopiaVariantJsonTexts = useMemo(
+    () => threeDTopiaPromptPack.variants.map((variant) => serializeThreeDTopiaPromptVariant(variant)),
+    [threeDTopiaPromptPack],
   );
   const threeDTopiaPromptPackText = useMemo(
     () => JSON.stringify(threeDTopiaPromptPack, null, 2),
@@ -413,6 +448,22 @@ function ResultPanel({
           </div>
         </div>
 
+        {devExportStatus.kind === "saving" ? (
+          <p className="helper-copy">개발 서버에 prompt pack을 저장하는 중입니다.</p>
+        ) : null}
+        {devExportStatus.kind === "success" ? (
+          <p className="helper-copy">
+            로컬 저장 완료: <code>{devExportStatus.outputDir}</code>
+            <br />
+            바로 실행용 경로: <code>{devExportStatus.latestDir}</code>
+          </p>
+        ) : null}
+        {devExportStatus.kind === "error" ? (
+          <p className="helper-copy">
+            로컬 저장 실패: <code>{devExportStatus.message}</code>
+          </p>
+        ) : null}
+
         <div className="prompt-results-grid">
           <ResultCard
             title="Emotion Carrier only"
@@ -420,6 +471,8 @@ function ResultPanel({
             copyTarget="three_dtopia_emotion_carrier_only"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[0].prompt}
+            jsonCopyTarget="three_dtopia_emotion_carrier_only_json"
+            jsonContent={threeDTopiaVariantJsonTexts[0]}
             copyFeedback={copyFeedback}
             onCopyText={onCopyText}
           />
@@ -430,6 +483,8 @@ function ResultPanel({
             copyTarget="three_dtopia_emotion_carrier_vad"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[1].prompt}
+            jsonCopyTarget="three_dtopia_emotion_carrier_vad_json"
+            jsonContent={threeDTopiaVariantJsonTexts[1]}
             copyFeedback={copyFeedback}
             onCopyText={onCopyText}
           />
@@ -440,6 +495,8 @@ function ResultPanel({
             copyTarget="three_dtopia_emotion_carrier_appraisal"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[2].prompt}
+            jsonCopyTarget="three_dtopia_emotion_carrier_appraisal_json"
+            jsonContent={threeDTopiaVariantJsonTexts[2]}
             copyFeedback={copyFeedback}
             onCopyText={onCopyText}
           />
@@ -450,6 +507,8 @@ function ResultPanel({
             copyTarget="three_dtopia_emotion_carrier_vad_appraisal"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[3].prompt}
+            jsonCopyTarget="three_dtopia_emotion_carrier_vad_appraisal_json"
+            jsonContent={threeDTopiaVariantJsonTexts[3]}
             copyFeedback={copyFeedback}
             onCopyText={onCopyText}
           />
@@ -491,6 +550,8 @@ function App() {
   const [submittedRawSurveyResponse, setSubmittedRawSurveyResponse] =
     useState<RawSurveyResponse | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null);
+  const [devExportStatus, setDevExportStatus] = useState<DevExportStatus>({ kind: "idle" });
+  const lastExportedGeneratedAtRef = useRef<string | null>(null);
 
   const questionIds = getVisibleQuestionIds(answers);
   const safeQuestionIndex = Math.min(currentIndex, questionIds.length - 1);
@@ -513,6 +574,11 @@ function App() {
   const comparisonArtifacts = useMemo(
     () => (submittedRawSurveyResponse ? buildPromptComparison(submittedRawSurveyResponse) : null),
     [submittedRawSurveyResponse],
+  );
+  const threeDTopiaPromptPack = useMemo(
+    () =>
+      comparisonArtifacts ? buildThreeDTopiaPromptPack(comparisonArtifacts) : null,
+    [comparisonArtifacts],
   );
   const summaryEntries: SummaryEntry[] = questionIds
     .slice(0, isCompleted ? questionIds.length : safeQuestionIndex)
@@ -548,6 +614,50 @@ function App() {
     return () => window.clearTimeout(timeout);
   }, [copyFeedback]);
 
+  useEffect(() => {
+    if (!submittedRawSurveyResponse || !threeDTopiaPromptPack) {
+      return undefined;
+    }
+
+    if (!import.meta.env.DEV) {
+      return undefined;
+    }
+
+    if (lastExportedGeneratedAtRef.current === threeDTopiaPromptPack.generatedAt) {
+      return undefined;
+    }
+
+    let isActive = true;
+    lastExportedGeneratedAtRef.current = threeDTopiaPromptPack.generatedAt;
+    setDevExportStatus({ kind: "saving" });
+
+    void exportPromptPackToDevServer(threeDTopiaPromptPack)
+      .then((result) => {
+        if (!isActive) {
+          return;
+        }
+        setDevExportStatus({
+          kind: "success",
+          outputDir: result.outputDir,
+          latestDir: result.latestDir,
+          files: result.files,
+        });
+      })
+      .catch((error) => {
+        if (!isActive) {
+          return;
+        }
+        setDevExportStatus({
+          kind: "error",
+          message: error instanceof Error ? error.message : "알 수 없는 오류",
+        });
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [submittedRawSurveyResponse, threeDTopiaPromptPack]);
+
   const handleSelectValue = (questionId: QuestionId, value: string) => {
     setAnswers((previous) => ({
       ...previous,
@@ -560,6 +670,8 @@ function App() {
 
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
+    setDevExportStatus({ kind: "idle" });
+    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleToggleValue = (questionId: QuestionId, value: string) => {
@@ -583,6 +695,8 @@ function App() {
 
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
+    setDevExportStatus({ kind: "idle" });
+    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleTextChange = (questionId: QuestionId, value: string) => {
@@ -596,6 +710,8 @@ function App() {
 
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
+    setDevExportStatus({ kind: "idle" });
+    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleNext = () => {
@@ -608,6 +724,7 @@ function App() {
       if (response) {
         setSubmittedRawSurveyResponse(response);
         setCopyFeedback(null);
+        setDevExportStatus({ kind: "idle" });
       }
       return;
     }
@@ -623,6 +740,8 @@ function App() {
     setCurrentIndex((index) => Math.max(index - 1, 0));
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
+    setDevExportStatus({ kind: "idle" });
+    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleRestart = () => {
@@ -630,6 +749,8 @@ function App() {
     setCurrentIndex(0);
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
+    setDevExportStatus({ kind: "idle" });
+    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleCopyText = async (target: CopyTarget, text: string) => {
@@ -701,10 +822,11 @@ function App() {
             ) : (
               <ResultPanel
                 rawSurveyResponse={submittedRawSurveyResponse!}
-                comparison={comparisonArtifacts!}
+                threeDTopiaPromptPack={threeDTopiaPromptPack!}
                 copyFeedback={copyFeedback}
                 onCopyText={handleCopyText}
                 onRestart={handleRestart}
+                devExportStatus={devExportStatus}
               />
             )}
           </div>
