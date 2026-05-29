@@ -148,6 +148,45 @@ button:disabled {
   max-width: 68ch;
 }
 
+.participant-row {
+  display: grid;
+  gap: 10px;
+  max-width: 34rem;
+}
+
+.participant-label {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #d9e6fb;
+}
+
+.text-input {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(174, 197, 233, 0.2);
+  background: rgba(5, 11, 19, 0.85);
+  color: #eef4ff;
+  padding: 12px 14px;
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background 120ms ease;
+}
+
+.text-input::placeholder {
+  color: rgba(184, 201, 225, 0.6);
+}
+
+.text-input:focus {
+  border-color: rgba(138, 197, 255, 0.7);
+  box-shadow: 0 0 0 4px rgba(138, 197, 255, 0.14);
+}
+
+.text-input:disabled {
+  opacity: 0.6;
+}
+
 .step-rail {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

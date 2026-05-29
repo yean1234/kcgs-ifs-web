@@ -20,6 +20,7 @@ function promptPackExportPlugin(): Plugin {
           const body = await readRequestBody(req);
           const promptPack = JSON.parse(body) as {
             generatedAt?: string;
+            participantId?: string;
             variants?: Array<{
               id: string;
               title: string;
@@ -35,8 +36,10 @@ function promptPackExportPlugin(): Plugin {
 
           const timestamp = new Date().toISOString().replace(/:/g, "-");
           const generatedRoot = path.join(PROJECT_ROOT, "ai_models", "inputs", "generated");
-          const outputDir = path.join(generatedRoot, timestamp);
-          const latestDir = path.join(generatedRoot, "latest");
+          const participantFolder = sanitizeParticipantFolder(promptPack.participantId);
+          const participantRoot = path.join(generatedRoot, participantFolder);
+          const outputDir = path.join(participantRoot, timestamp);
+          const latestDir = path.join(participantRoot, "latest");
           await fs.mkdir(outputDir, { recursive: true });
 
           await fs.writeFile(
@@ -68,6 +71,7 @@ function promptPackExportPlugin(): Plugin {
             JSON.stringify(
               {
                 generatedAt: promptPack.generatedAt ?? new Date().toISOString(),
+                participantId: participantFolder,
                 outputDir: path.relative(PROJECT_ROOT, outputDir),
                 files,
               },
@@ -89,6 +93,7 @@ function promptPackExportPlugin(): Plugin {
                 ok: true,
                 outputDir: path.relative(PROJECT_ROOT, outputDir),
                 latestDir: path.relative(PROJECT_ROOT, latestDir),
+                participantId: participantFolder,
                 files,
               },
               null,
@@ -124,4 +129,10 @@ async function readRequestBody(request: NodeJS.ReadableStream): Promise<string> 
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
   return Buffer.concat(chunks).toString("utf-8");
+}
+
+function sanitizeParticipantFolder(value: string | undefined): string {
+  const normalized = (value ?? "").trim().toLowerCase();
+  const folder = normalized.replace(/[^a-z0-9._-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  return folder || "anonymous";
 }

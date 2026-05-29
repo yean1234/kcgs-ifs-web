@@ -4,6 +4,7 @@ export interface DevPromptPackExportResponse {
   ok: true;
   outputDir: string;
   latestDir: string;
+  participantId: string;
   files: string[];
 }
 
