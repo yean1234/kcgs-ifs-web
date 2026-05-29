@@ -48,7 +48,7 @@ type CopyFeedback = {
 type DevExportStatus =
   | { kind: "idle" }
   | { kind: "saving" }
-  | { kind: "success"; outputDir: string; latestDir: string; files: string[] }
+  | { kind: "success"; outputDir: string; latestDir: string; participantId: string; files: string[] }
   | { kind: "error"; message: string };
 
 type SummaryEntry = {
@@ -456,6 +456,8 @@ function ResultPanel({
             로컬 저장 완료: <code>{devExportStatus.outputDir}</code>
             <br />
             바로 실행용 경로: <code>{devExportStatus.latestDir}</code>
+            <br />
+            참가자 폴더: <code>{devExportStatus.participantId}</code>
           </p>
         ) : null}
         {devExportStatus.kind === "error" ? (
@@ -549,6 +551,7 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submittedRawSurveyResponse, setSubmittedRawSurveyResponse] =
     useState<RawSurveyResponse | null>(null);
+  const [participantId, setParticipantId] = useState("user1");
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null);
   const [devExportStatus, setDevExportStatus] = useState<DevExportStatus>({ kind: "idle" });
   const lastExportedGeneratedAtRef = useRef<string | null>(null);
@@ -577,8 +580,8 @@ function App() {
   );
   const threeDTopiaPromptPack = useMemo(
     () =>
-      comparisonArtifacts ? buildThreeDTopiaPromptPack(comparisonArtifacts) : null,
-    [comparisonArtifacts],
+      comparisonArtifacts ? buildThreeDTopiaPromptPack(comparisonArtifacts, participantId) : null,
+    [comparisonArtifacts, participantId],
   );
   const summaryEntries: SummaryEntry[] = questionIds
     .slice(0, isCompleted ? questionIds.length : safeQuestionIndex)
@@ -640,6 +643,7 @@ function App() {
           kind: "success",
           outputDir: result.outputDir,
           latestDir: result.latestDir,
+          participantId: result.participantId,
           files: result.files,
         });
       })
@@ -774,6 +778,24 @@ function App() {
           <p className="hero-copy">
             Find와 Focus로 IFS 맥락을 붙잡고, Flesh out에서 중심 이미지와 수정어를 정리해 Meshy용 프롬프트를 만듭니다.
           </p>
+
+          <div className="participant-row">
+            <label className="participant-label" htmlFor="participant-id">
+              참가자 폴더명
+            </label>
+            <input
+              id="participant-id"
+              className="text-input participant-input"
+              type="text"
+              value={participantId}
+              onChange={(event) => setParticipantId(event.target.value)}
+              placeholder="예: user1"
+              disabled={isCompleted}
+            />
+            <p className="helper-copy">
+              결과 파일은 <code>ai_models/inputs/generated/{participantId.trim() || "anonymous"}</code> 아래에 저장됩니다.
+            </p>
+          </div>
 
           <div className="step-rail" aria-label="설문 단계">
             {SECTION_ORDER.map((sectionId, index) => {

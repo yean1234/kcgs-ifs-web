@@ -14,6 +14,7 @@ const RECOMMENDED_STAGE1_SETTINGS = {
 
 export function buildThreeDTopiaPromptPack(
   comparison: PromptComparisonArtifacts,
+  participantId?: string,
 ): ThreeDTopiaPromptPack {
   const variants: ThreeDTopiaPromptVariant[] = [
     {
@@ -48,6 +49,7 @@ export function buildThreeDTopiaPromptPack(
 
   return {
     generatedAt: new Date().toISOString(),
+    participantId: participantId?.trim() || undefined,
     rawSurveyResponse: comparison.rawSurveyResponse,
     variants,
     recommendedStage1Settings: {
