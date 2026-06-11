@@ -1,7 +1,0 @@
-torch
-diffusers
-transformers
-accelerate
-safetensors
-numpy
-trimesh

@@ -24,7 +24,6 @@ export interface ThreeDTopiaStage1Settings {
 
 export interface ThreeDTopiaPromptPack {
   generatedAt: string;
-  participantId?: string;
   rawSurveyResponse: RawSurveyResponse;
   variants: ThreeDTopiaPromptVariant[];
   recommendedStage1Settings: ThreeDTopiaStage1Settings;

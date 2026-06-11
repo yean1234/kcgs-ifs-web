@@ -51,6 +51,7 @@ export type SurveyQuestionType = "single_select" | "multi_select" | "textarea" |
 export type SurveyOption = {
   value: string;
   label: string;
+  canonicalPrompt?: string;
 };
 
 export type ScaleDefinition = {

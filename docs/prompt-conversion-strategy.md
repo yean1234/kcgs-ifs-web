@@ -132,7 +132,7 @@ central and visually salient presence, obstructive surrounding elements, presenc
 - 순서는 다음과 같다.
 
 ```text
-[Emotion Carrier base prompt], [VAD modifiers], [Appraisal modifiers], 3D object, isolated object, suitable for text-to-3D generation
+[Emotion Carrier base prompt], [VAD modifiers], [Appraisal modifiers], 2D object, isolated object, suitable for text-to-2D generation
 ```
 
 - `src/utils/promptConverters/meshyPrompt.ts`의 `buildMeshyPrompt()`는 subject, modifiers, styles를 쉼표로 연결하는 역할만 한다.
@@ -140,7 +140,7 @@ central and visually salient presence, obstructive surrounding elements, presenc
 ### 예시
 
 ```text
-a curled-up child figure with a closed door-like object, muted, dim, somber, still, low-energy, quiet, small-scale, fragile, withdrawn, central and visually salient presence, obstructive surrounding elements, presence of external influence implied in the scene, enclosed, limited escape space, uncertain, asymmetrical, partially obscured surroundings, 3D object, isolated object, suitable for text-to-3D generation
+a curled-up child figure with a closed door-like object, muted, dim, somber, still, low-energy, quiet, small-scale, fragile, withdrawn, central and visually salient presence, obstructive surrounding elements, presence of external influence implied in the scene, enclosed, limited escape space, uncertain, asymmetrical, partially obscured surroundings, 2D object, isolated object, suitable for text-to-2D generation
 ```
 
 ---
@@ -148,7 +148,7 @@ a curled-up child figure with a closed door-like object, muted, dim, somber, sti
 ## 6. 결과 화면 표시 원칙
 
 - 메인 결과 화면은 JSON 하나만 보여주지 않는다.
-- 3DTopia 실행용 full prompt 변형 4개를 각각 확인할 수 있어야 한다.
+- 조건별 full prompt 변형 4개를 각각 확인할 수 있어야 한다.
 
   1. `Emotion Carrier only`
   2. `Emotion Carrier + VAD`
@@ -157,14 +157,11 @@ a curled-up child figure with a closed door-like object, muted, dim, somber, sti
 
 - `Raw Survey Response JSON`은 개발용 접기/펼치기 영역에서만 보여준다.
 - 각 항목은 복사 가능해야 한다.
-- 3DTopia 실행용 4개 카드는 로컬 stage1 입력용 full prompt다.
+- 4개 카드는 Meshy나 다른 데모에 바로 넣을 수 있는 입력용 full prompt다.
 
----
+## 7. 프롬프트 JSON 내보내기
 
-## 7. 로컬 3DTopia 실행용 내보내기
-
-- 웹에서는 prompt pack JSON만 내려받고, 3D 모델 생성은 로컬에서 실행한다.
-- `scripts/run-3dtopia-prompt-pack.mjs`는 다운로드한 prompt pack JSON을 읽어 개별 prompt 텍스트 파일과 `run-stage1.sh`를 만든다.
-- 생성된 `run-stage1.sh`는 3DTopia stage1의 `--text` 입력으로 각 prompt를 넘기도록 구성한다.
-- stage2 refinement는 선택한 candidate mesh를 기준으로 수동 실행한다.
-- 이 흐름은 웹 UI와 로컬 모델 실행을 분리해 연구용 prompt 비교와 3D 생성 단계를 분명하게 구분하기 위한 것이다.
+- 웹에서는 prompt pack JSON만 내려받는다.
+- JSON에는 4개 변형 프롬프트와 각 변형의 가공 요소가 포함된다.
+- 사용자는 이 JSON을 Meshy나 다른 외부 데모의 입력으로 사용할 수 있다.
+- 로컬 모델 실행 스크립트는 제공하지 않는다.
