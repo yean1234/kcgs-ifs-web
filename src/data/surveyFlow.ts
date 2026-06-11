@@ -6,9 +6,14 @@ import type {
   SurveyQuestion,
 } from "../types/survey";
 
-const option = (value: string, label: string): SurveyOption => ({
+const option = (
+  value: string,
+  label: string,
+  canonicalPrompt?: string,
+): SurveyOption => ({
   value,
   label,
+  canonicalPrompt,
 });
 
 export const SECTION_META: Record<"find" | "focus" | "flesh_out", SectionMeta> = {
@@ -74,14 +79,18 @@ export const QUESTION_DEFINITIONS = {
     prompt:
       "이 마음의 모습을 VR 오브젝트로 옮긴다면, 어떤 표현 방식이 가장 가깝나요?\n잘 맞는 선택지가 없다면 직접 설명해 주세요.",
     options: [
-      option("young_self", "어린 시절의 나"),
-      option("character", "사람 또는 캐릭터 같은 존재"),
-      option("symbolic_object", "빛·색·그림자·물체 같은 상징적 형상"),
-      option("emotion_as_object", "감정이 형상으로 느껴짐"),
-      option("body_sensation", "몸의 감각이 형상으로 느껴짐"),
-      option("voice_or_phrase", "목소리 또는 문장처럼 느껴짐"),
-      option("multiple", "여러 형태가 함께 느껴짐"),
-      option("undefined", "아직 구체화되지 않음"),
+      option("young_self", "어린 시절의 나", "a child-like figure"),
+      option("character", "사람 또는 캐릭터 같은 존재", "a person-like figure"),
+      option(
+        "symbolic_object",
+        "빛·색·그림자·물체 같은 상징적 형상",
+        "an abstract symbolic form",
+      ),
+      option("emotion_as_object", "감정이 형상으로 느껴짐", "an emotional form"),
+      option("body_sensation", "몸의 감각이 형상으로 느껴짐", "a bodily-sensation form"),
+      option("voice_or_phrase", "목소리 또는 문장처럼 느껴짐", "a voice-shaped form"),
+      option("multiple", "여러 형태가 함께 느껴짐", "a composite form"),
+      option("undefined", "아직 구체화되지 않음", "an undefined abstract form"),
       option("custom", "직접 설명하기 (영어)"),
     ],
     customPlaceholder: "Please describe it in English, e.g. a blurred feeling, a cloud-like image, a distant scene.",

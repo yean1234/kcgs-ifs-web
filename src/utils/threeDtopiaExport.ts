@@ -14,34 +14,33 @@ const RECOMMENDED_STAGE1_SETTINGS = {
 
 export function buildThreeDTopiaPromptPack(
   comparison: PromptComparisonArtifacts,
-  participantId?: string,
 ): ThreeDTopiaPromptPack {
   const variants: ThreeDTopiaPromptVariant[] = [
     {
       id: "emotion_carrier_only",
       title: "Emotion Carrier only",
-      description: "중심 형상만 반영한 3DTopia 실행용 프롬프트",
+      description: "중심 형상만 반영한 입력용 프롬프트",
       prompt: comparison.emotionCarrierOnlyPrompt,
       addedModifiers: [],
     },
     {
       id: "emotion_carrier_vad",
       title: "Emotion Carrier + VAD",
-      description: "Emotion Carrier에 VAD 시각 수식어가 추가된 프롬프트",
+      description: "Emotion Carrier에 VAD 시각 수식어가 추가된 입력용 프롬프트",
       prompt: comparison.emotionCarrierVadPrompt,
       addedModifiers: [...comparison.vadModifiers],
     },
     {
       id: "emotion_carrier_appraisal",
       title: "Emotion Carrier + Appraisal",
-      description: "Emotion Carrier에 Appraisal 시각 수식어가 추가된 프롬프트",
+      description: "Emotion Carrier에 Appraisal 시각 수식어가 추가된 입력용 프롬프트",
       prompt: comparison.emotionCarrierAppraisalPrompt,
       addedModifiers: [...comparison.appraisalModifiers],
     },
     {
       id: "emotion_carrier_vad_appraisal",
       title: "Emotion Carrier + VAD + Appraisal",
-      description: "Emotion Carrier에 VAD와 Appraisal이 모두 반영된 최종 프롬프트",
+      description: "Emotion Carrier에 VAD와 Appraisal이 모두 반영된 최종 입력용 프롬프트",
       prompt: comparison.finalMeshyPrompt,
       addedModifiers: [...comparison.vadModifiers, ...comparison.appraisalModifiers],
     },
@@ -49,7 +48,6 @@ export function buildThreeDTopiaPromptPack(
 
   return {
     generatedAt: new Date().toISOString(),
-    participantId: participantId?.trim() || undefined,
     rawSurveyResponse: comparison.rawSurveyResponse,
     variants,
     recommendedStage1Settings: {

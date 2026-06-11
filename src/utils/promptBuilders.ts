@@ -5,10 +5,10 @@ import { buildEmotionCarrierBasePromptText } from "../data/emotionCarrierPromptM
 import { buildVadModifiers } from "../data/vadModifierMap";
 import { buildMeshyPrompt } from "./promptConverters/meshyPrompt";
 
-const TEXT_TO_3D_STYLES = [
-  "3D object",
+const TEXT_TO_2D_STYLES = [
+  "2D object",
   "isolated object",
-  "suitable for text-to-3D generation",
+  "suitable for text-to-2D generation",
 ] as const;
 
 export function buildEmotionCarrierBasePrompt(
@@ -41,18 +41,18 @@ export function buildFinalMeshyPrompt(
   return buildMeshyPrompt({
     subject: basePrompt,
     modifiers: [...vadModifiers],
-    styles: [...appraisalModifiers, ...TEXT_TO_3D_STYLES],
+    styles: [...appraisalModifiers, ...TEXT_TO_2D_STYLES],
   });
 }
 
-function buildTextTo3DPrompt(
+function buildTextTo2DPrompt(
   subject: string,
   modifiers: readonly string[],
 ): string {
   return buildMeshyPrompt({
     subject,
     modifiers,
-    styles: TEXT_TO_3D_STYLES,
+    styles: TEXT_TO_2D_STYLES,
   });
 }
 
@@ -62,9 +62,9 @@ export function buildPromptComparison(
   const emotionCarrierBasePrompt = buildEmotionCarrierBasePrompt(rawSurveyResponse);
   const vadModifiers = buildVadModifiersFromResponse(rawSurveyResponse.vad);
   const appraisalModifiers = buildAppraisalModifiersFromResponse(rawSurveyResponse.appraisal);
-  const emotionCarrierOnlyPrompt = buildTextTo3DPrompt(emotionCarrierBasePrompt, []);
-  const emotionCarrierVadPrompt = buildTextTo3DPrompt(emotionCarrierBasePrompt, vadModifiers);
-  const emotionCarrierAppraisalPrompt = buildTextTo3DPrompt(
+  const emotionCarrierOnlyPrompt = buildTextTo2DPrompt(emotionCarrierBasePrompt, []);
+  const emotionCarrierVadPrompt = buildTextTo2DPrompt(emotionCarrierBasePrompt, vadModifiers);
+  const emotionCarrierAppraisalPrompt = buildTextTo2DPrompt(
     emotionCarrierBasePrompt,
     appraisalModifiers,
   );

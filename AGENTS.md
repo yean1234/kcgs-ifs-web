@@ -28,7 +28,7 @@
 5. `rawSurveyResponse`를 기반으로 `Emotion Carrier base prompt`, `VAD modifiers`, `Appraisal modifiers`, `Final Meshy prompt`를 생성한다.
 6. 결과 화면에서 원본 JSON과 각 프롬프트 단계를 확인할 수 있게 한다.
 7. 사용자가 프롬프트를 복사하여 Meshy에 직접 입력할 수 있도록 한다.
-8. 필요하면 prompt pack JSON을 내려받아 `scripts/run-3dtopia-prompt-pack.mjs`로 로컬 3DTopia 실행용 파일을 만든다.
+8. 필요하면 prompt pack JSON을 내려받아 Meshy나 다른 데모에 직접 넣을 수 있도록 한다.
 
 명시적으로 요청받기 전까지 다음 기능은 구현하지 않는다.
 

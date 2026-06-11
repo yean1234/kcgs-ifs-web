@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { APPRAISAL_GUIDANCE, SECTION_META } from "./data/surveyFlow";
 import type {
   AnswerMap,
@@ -14,7 +14,6 @@ import {
   buildThreeDTopiaPromptPack,
   serializeThreeDTopiaPromptVariant,
 } from "./utils/threeDtopiaExport";
-import { exportPromptPackToDevServer } from "./utils/localPromptPackExport";
 import {
   buildRawSurveyResponse,
   createEmptyAnswerMap,
@@ -44,12 +43,6 @@ type CopyFeedback = {
   target: CopyTarget;
   kind: "success" | "error";
 } | null;
-
-type DevExportStatus =
-  | { kind: "idle" }
-  | { kind: "saving" }
-  | { kind: "success"; outputDir: string; latestDir: string; participantId: string; files: string[] }
-  | { kind: "error"; message: string };
 
 type SummaryEntry = {
   questionId: QuestionId;
@@ -87,7 +80,6 @@ type ResultPanelProps = {
   copyFeedback: CopyFeedback;
   onCopyText: (target: CopyTarget, text: string) => void;
   onRestart: () => void;
-  devExportStatus: DevExportStatus;
 };
 
 type ResultCardProps = {
@@ -381,7 +373,6 @@ function ResultPanel({
   copyFeedback,
   onCopyText,
   onRestart,
-  devExportStatus,
 }: ResultPanelProps) {
   const rawSurveyResponseText = useMemo(
     () => JSON.stringify(rawSurveyResponse, null, 2),
@@ -402,7 +393,7 @@ function ResultPanel({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `3dtopia-prompt-pack-${new Date().toISOString().replace(/:/g, "-")}.json`;
+    link.download = `2dtopia-prompt-pack-${new Date().toISOString().replace(/:/g, "-")}.json`;
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -411,14 +402,14 @@ function ResultPanel({
     <section className="card result-panel">
       <div className="result-head">
         <div>
-          <p className="eyebrow">3DTopia 실행용 프롬프트 결과</p>
-          <h2>Find / Focus를 거친 뒤 Flesh out에서 로컬 실행용 프롬프트를 만듭니다</h2>
+          <p className="eyebrow">조건별 프롬프트 결과</p>
+          <h2>Find / Focus를 거친 뒤 Flesh out에서 외부 도구용 프롬프트를 만듭니다</h2>
           <p className="helper-copy">
-            Find와 Focus는 IFS 맥락으로 보존하고, Flesh out에서 중심 이미지, 분위기, 관계를 붙여 3DTopia stage1에 넣을 프롬프트를 구성합니다.
+            Find와 Focus는 IFS 맥락으로 보존하고, Flesh out에서 중심 이미지, 분위기, 관계를 붙여 Meshy나 다른 데모에 넣을 프롬프트를 구성합니다.
           </p>
           <p className="helper-copy">원본 JSON은 아래 개발용 접기 영역에서 확인할 수 있습니다.</p>
           <p className="helper-copy">
-            아래 3DTopia 실행용 프롬프트 묶음을 다운로드하면, 로컬에서 stage1 입력 파일로
+            아래 프롬프트 묶음을 다운로드하면, 복사하거나 JSON으로 저장해 외부 입력 파일로
             사용할 수 있습니다.
           </p>
         </div>
@@ -433,10 +424,10 @@ function ResultPanel({
       <section className="prompt-export-panel">
         <div className="result-head">
           <div>
-            <p className="eyebrow">3DTopia 실행용 프롬프트</p>
-            <h2>웹에서는 프롬프트만 만들고, 로컬에서 모델을 생성합니다</h2>
+            <p className="eyebrow">프롬프트 출력</p>
+            <h2>웹에서는 프롬프트만 만들고, 외부 도구에 넣습니다</h2>
             <p className="helper-copy">
-              아래 네 개의 프롬프트는 각각 3DTopia stage1의 `--text` 입력으로 넘길 수 있는
+              아래 네 개의 프롬프트는 각각 Meshy나 다른 데모의 입력으로 넘길 수 있는
               full prompt입니다.
             </p>
           </div>
@@ -448,28 +439,10 @@ function ResultPanel({
           </div>
         </div>
 
-        {devExportStatus.kind === "saving" ? (
-          <p className="helper-copy">개발 서버에 prompt pack을 저장하는 중입니다.</p>
-        ) : null}
-        {devExportStatus.kind === "success" ? (
-          <p className="helper-copy">
-            로컬 저장 완료: <code>{devExportStatus.outputDir}</code>
-            <br />
-            바로 실행용 경로: <code>{devExportStatus.latestDir}</code>
-            <br />
-            참가자 폴더: <code>{devExportStatus.participantId}</code>
-          </p>
-        ) : null}
-        {devExportStatus.kind === "error" ? (
-          <p className="helper-copy">
-            로컬 저장 실패: <code>{devExportStatus.message}</code>
-          </p>
-        ) : null}
-
         <div className="prompt-results-grid">
           <ResultCard
             title="Emotion Carrier only"
-            description="중심 형상만 반영한 3DTopia 실행용 프롬프트"
+            description="중심 형상만 반영한 입력용 프롬프트"
             copyTarget="three_dtopia_emotion_carrier_only"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[0].prompt}
@@ -481,7 +454,7 @@ function ResultPanel({
 
           <ResultCard
             title="Emotion Carrier + VAD"
-            description="Emotion Carrier에 VAD 시각 수식어가 추가된 프롬프트"
+            description="Emotion Carrier에 VAD 시각 수식어가 추가된 입력용 프롬프트"
             copyTarget="three_dtopia_emotion_carrier_vad"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[1].prompt}
@@ -493,7 +466,7 @@ function ResultPanel({
 
           <ResultCard
             title="Emotion Carrier + Appraisal"
-            description="Emotion Carrier에 Appraisal 시각 수식어가 추가된 프롬프트"
+            description="Emotion Carrier에 Appraisal 시각 수식어가 추가된 입력용 프롬프트"
             copyTarget="three_dtopia_emotion_carrier_appraisal"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[2].prompt}
@@ -505,7 +478,7 @@ function ResultPanel({
 
           <ResultCard
             title="Emotion Carrier + VAD + Appraisal"
-            description="Emotion Carrier에 VAD와 Appraisal이 모두 반영된 최종 프롬프트"
+            description="Emotion Carrier에 VAD와 Appraisal이 모두 반영된 최종 입력용 프롬프트"
             copyTarget="three_dtopia_emotion_carrier_vad_appraisal"
             copyButtonLabel="프롬프트 복사"
             content={threeDTopiaPromptPack.variants[3].prompt}
@@ -551,10 +524,7 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submittedRawSurveyResponse, setSubmittedRawSurveyResponse] =
     useState<RawSurveyResponse | null>(null);
-  const [participantId, setParticipantId] = useState("user1");
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null);
-  const [devExportStatus, setDevExportStatus] = useState<DevExportStatus>({ kind: "idle" });
-  const lastExportedGeneratedAtRef = useRef<string | null>(null);
 
   const questionIds = getVisibleQuestionIds(answers);
   const safeQuestionIndex = Math.min(currentIndex, questionIds.length - 1);
@@ -579,9 +549,8 @@ function App() {
     [submittedRawSurveyResponse],
   );
   const threeDTopiaPromptPack = useMemo(
-    () =>
-      comparisonArtifacts ? buildThreeDTopiaPromptPack(comparisonArtifacts, participantId) : null,
-    [comparisonArtifacts, participantId],
+    () => (comparisonArtifacts ? buildThreeDTopiaPromptPack(comparisonArtifacts) : null),
+    [comparisonArtifacts],
   );
   const summaryEntries: SummaryEntry[] = questionIds
     .slice(0, isCompleted ? questionIds.length : safeQuestionIndex)
@@ -617,51 +586,6 @@ function App() {
     return () => window.clearTimeout(timeout);
   }, [copyFeedback]);
 
-  useEffect(() => {
-    if (!submittedRawSurveyResponse || !threeDTopiaPromptPack) {
-      return undefined;
-    }
-
-    if (!import.meta.env.DEV) {
-      return undefined;
-    }
-
-    if (lastExportedGeneratedAtRef.current === threeDTopiaPromptPack.generatedAt) {
-      return undefined;
-    }
-
-    let isActive = true;
-    lastExportedGeneratedAtRef.current = threeDTopiaPromptPack.generatedAt;
-    setDevExportStatus({ kind: "saving" });
-
-    void exportPromptPackToDevServer(threeDTopiaPromptPack)
-      .then((result) => {
-        if (!isActive) {
-          return;
-        }
-        setDevExportStatus({
-          kind: "success",
-          outputDir: result.outputDir,
-          latestDir: result.latestDir,
-          participantId: result.participantId,
-          files: result.files,
-        });
-      })
-      .catch((error) => {
-        if (!isActive) {
-          return;
-        }
-        setDevExportStatus({
-          kind: "error",
-          message: error instanceof Error ? error.message : "알 수 없는 오류",
-        });
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [submittedRawSurveyResponse, threeDTopiaPromptPack]);
-
   const handleSelectValue = (questionId: QuestionId, value: string) => {
     setAnswers((previous) => ({
       ...previous,
@@ -674,8 +598,6 @@ function App() {
 
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
-    setDevExportStatus({ kind: "idle" });
-    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleToggleValue = (questionId: QuestionId, value: string) => {
@@ -699,8 +621,6 @@ function App() {
 
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
-    setDevExportStatus({ kind: "idle" });
-    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleTextChange = (questionId: QuestionId, value: string) => {
@@ -714,8 +634,6 @@ function App() {
 
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
-    setDevExportStatus({ kind: "idle" });
-    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleNext = () => {
@@ -728,7 +646,6 @@ function App() {
       if (response) {
         setSubmittedRawSurveyResponse(response);
         setCopyFeedback(null);
-        setDevExportStatus({ kind: "idle" });
       }
       return;
     }
@@ -744,8 +661,6 @@ function App() {
     setCurrentIndex((index) => Math.max(index - 1, 0));
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
-    setDevExportStatus({ kind: "idle" });
-    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleRestart = () => {
@@ -753,8 +668,6 @@ function App() {
     setCurrentIndex(0);
     setSubmittedRawSurveyResponse(null);
     setCopyFeedback(null);
-    setDevExportStatus({ kind: "idle" });
-    lastExportedGeneratedAtRef.current = null;
   };
 
   const handleCopyText = async (target: CopyTarget, text: string) => {
@@ -778,24 +691,6 @@ function App() {
           <p className="hero-copy">
             Find와 Focus로 IFS 맥락을 붙잡고, Flesh out에서 중심 이미지와 수정어를 정리해 Meshy용 프롬프트를 만듭니다.
           </p>
-
-          <div className="participant-row">
-            <label className="participant-label" htmlFor="participant-id">
-              참가자 폴더명
-            </label>
-            <input
-              id="participant-id"
-              className="text-input participant-input"
-              type="text"
-              value={participantId}
-              onChange={(event) => setParticipantId(event.target.value)}
-              placeholder="예: user1"
-              disabled={isCompleted}
-            />
-            <p className="helper-copy">
-              결과 파일은 <code>ai_models/inputs/generated/{participantId.trim() || "anonymous"}</code> 아래에 저장됩니다.
-            </p>
-          </div>
 
           <div className="step-rail" aria-label="설문 단계">
             {SECTION_ORDER.map((sectionId, index) => {
@@ -848,7 +743,6 @@ function App() {
                 copyFeedback={copyFeedback}
                 onCopyText={handleCopyText}
                 onRestart={handleRestart}
-                devExportStatus={devExportStatus}
               />
             )}
           </div>

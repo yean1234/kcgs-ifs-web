@@ -281,7 +281,12 @@ function resolvePrimaryCarrier(question: SurveyQuestion, answer: AnswerRecord): 
     return customText.length > 0 ? customText : null;
   }
 
-  return findSelectedLabel(question, answer);
+  const selectedOption = question.options?.find((option) => option.value === answer.selectedValue);
+  if (!selectedOption) {
+    return findSelectedLabel(question, answer);
+  }
+
+  return selectedOption.canonicalPrompt ?? selectedOption.label;
 }
 
 function resolveSecondaryCarrier(question: SurveyQuestion, answer: AnswerRecord): string | null {
